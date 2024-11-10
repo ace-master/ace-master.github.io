@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Fuwari</title><description>Demo Site</description><link>https://fuwari.vercel.app/</link><language>en</language><item><title>How I win chawazi</title><link>https://fuwari.vercel.app/posts/how-i-win-chawazi/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/how-i-win-chawazi/</guid><description>A short story of how I win chawazi</description><pubDate>Fri, 08 Nov 2024 00:00:00 GMT</pubDate><content:encoded>&lt;h1&gt;Objective&lt;/h1&gt;
+&lt;p&gt;I aimed to delve into Android app research, and to facilitate this, I challenged myself to modify the Chwazi app. My goal was to ensure I would win every time I played the game.&lt;/p&gt;
+&lt;h1&gt;Overview of Chwazi&lt;/h1&gt;
+&lt;p&gt;For those unfamiliar with the Chwazi app, here’s a brief description. The Chwazi Finger Chooser app (version 2.8) is an engaging, interactive tool designed to help groups make random selections in a distinctive manner. Users can place their fingers on the screen, and the app randomly selects one or more fingers as the “winner.” This feature is especially useful for games, determining turns, or any activity that requires unbiased selection of an individual. Additionally, the app provides options for team formation and customizable selection settings.&lt;/p&gt;
+&lt;h1&gt;Research&lt;/h1&gt;
+&lt;h2&gt;Analyzing the APK&lt;/h2&gt;
+&lt;p&gt;To examine the APK of the app, I utilized the &lt;code&gt;jadx&lt;/code&gt; application. I opened the APK file with &lt;code&gt;jadx&lt;/code&gt;, which efficiently parsed and revealed all the application information.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;jadx-gui chwazi-finger-chooser-2-8.apk
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;lt;img src=&quot;/images/chawazi/jadex_overview.png&quot; alt=&quot;jadex overview&quot;&amp;gt;&lt;/p&gt;
+&lt;p&gt;As this was my first experience researching an Android app, I was uncertain about where to start. Therefore, I searched for keywords that I anticipated would be present in the relevant code blocks. I decided to look for the keyword &lt;code&gt;random&lt;/code&gt;, and the results were as follows:&lt;/p&gt;
+&lt;p&gt;&amp;lt;img src=&quot;/images/chawazi/search_result.png&quot; alt=&quot;search result&quot;&amp;gt;&lt;/p&gt;
+&lt;p&gt;I quickly noticed the reference to &lt;code&gt;com.tendadigial.chawaziApp.*&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Class Files&lt;/strong&gt;
+&amp;lt;img src=&quot;/images/chawazi/files_list.png&quot; alt=&quot;Classes list&quot;&amp;gt;&lt;/p&gt;
+&lt;p&gt;After exploring these files, I chose to concentrate on two specific ones:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;ModeFingers&lt;/strong&gt;: Likely the mode where one or more fingers are selected.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ModeGroups&lt;/strong&gt;: Probably the mode that divides users into groups.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In this article, I will focus solely on &lt;code&gt;ModeFingers&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Code Overview&lt;/strong&gt;
+&amp;lt;img src=&quot;/images/chawazi/function.png&quot; alt=&quot;do_game function&quot;&amp;gt;&lt;/p&gt;
+&lt;p&gt;In the code block, lines 38-43 initialize an &lt;code&gt;ArrayList&lt;/code&gt; containing all the active &lt;code&gt;fingers&lt;/code&gt;. The function &lt;code&gt;getOptionNumber&lt;/code&gt; returns the quantity of fingers that the user wishes to select. Following that, lines 49-60 feature a for loop that randomly selects fingers until the number in &lt;code&gt;arrayList2&lt;/code&gt; matches the &lt;code&gt;getOptionNumber&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;There are two options for the winning animation:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Animation for a single winning finger&lt;/li&gt;
+&lt;li&gt;Animation for multiple winning fingers&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We need to modify the for loop that is responsible for selecting the winning fingers (lines 49-60).&lt;/p&gt;
+&lt;h2&gt;Patching the APK&lt;/h2&gt;
+&lt;p&gt;Patching an APK file involves several steps:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Modifying the smali file&lt;/li&gt;
+&lt;li&gt;Rebuilding the APK&lt;/li&gt;
+&lt;li&gt;Signing the APK&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;Modify the Smali File&lt;/h3&gt;
+&lt;p&gt;I employed &lt;code&gt;apktool&lt;/code&gt; to both unpack and rebuild the APK.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;apktool d chwazi-finger-chooser-2-8.apk
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This command unpacks the APK and decompiles the &lt;code&gt;classes.dex&lt;/code&gt; file into &lt;code&gt;smali&lt;/code&gt; files. We aim to alter &lt;code&gt;ModeFingers&lt;/code&gt;, located at &lt;code&gt;chwazi-finger-chooser-2-8\smali\com\tendadigital\chwaziApp\ModeFingers.smali&lt;/code&gt;. This Java section is responsible for determining the winning fingers.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Modifing The Smali Code&lt;/strong&gt;
+&amp;lt;img src=&quot;/images/chawazi/for_loop.png&quot; alt=&quot;relevant code block&quot;&amp;gt;&lt;/p&gt;
+&lt;p&gt;I opted to change line 50.&lt;/p&gt;
+&lt;p&gt;&amp;lt;img src=&quot;/images/chawazi/smali_code.png&quot; alt=&quot;smali code&quot;&amp;gt;&lt;/p&gt;
+&lt;p&gt;In this smali code for line 50, the process is as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Call &lt;code&gt;random&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Move the result to &lt;code&gt;v4&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Load &lt;code&gt;ArrayList.size()&lt;/code&gt; into &lt;code&gt;v6&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Multiply &lt;code&gt;v4&lt;/code&gt; by &lt;code&gt;v6&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Convert &lt;code&gt;v4&lt;/code&gt; to an integer&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I can add a line at the end of this code to set &lt;code&gt;v4&lt;/code&gt; to &lt;code&gt;0&lt;/code&gt;. Consequently, if only one finger touches the screen, that finger will win. In multiple fingers mode, the winners will be determined in the order they touched the screen.&lt;/p&gt;
+&lt;h3&gt;Rebuild the APK&lt;/h3&gt;
+&lt;p&gt;To rebuild the APK, I used &lt;code&gt;apktool&lt;/code&gt; again:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;apktool b chwazi-finger-chooser-2-8
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;After building the APK, we need to align the zip file.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;zipalign -v 4 chwazi-finger-chooser-2-8/dist/chwazi-finger-chooser-2-8.apk align.chwazi-finger-chooser-2-8.apk
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Signing the App&lt;/h3&gt;
+&lt;p&gt;To sign the app, I first created a keystore and then used it to sign the APK.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Create Keystore:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;keytool -genkey -v -keystore keystore-name.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Sign Application:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;apksigner sign --ks keystore-name.jks --out align.chwazi-finger-chooser-2-8.sign.apk ./align.chwazi-finger-chooser-2-8.apk
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we can install our patched app on an Android device.&lt;/p&gt;
+&lt;h1&gt;Demonstration&lt;/h1&gt;
+&lt;h2&gt;Single Finger&lt;/h2&gt;
+&lt;p&gt;&amp;lt;iframe width=&quot;100%&quot; height=&quot;468&quot; src=&quot;/images/chawazi/one_finger.mp4&quot; title=&quot;Single finger example&quot; frameborder=&quot;0&quot; allowfullscreen&amp;gt;&amp;lt;/iframe&amp;gt;&lt;/p&gt;
+&lt;h2&gt;Multiple Fingers&lt;/h2&gt;
+&lt;p&gt;&amp;lt;iframe width=&quot;100%&quot; height=&quot;468&quot; src=&quot;/images/multi_finger.mp4&quot; title=&quot;Multi finger example&quot; frameborder=&quot;0&quot; allowfullscreen&amp;gt;&amp;lt;/iframe&amp;gt;&lt;/p&gt;
+</content:encoded></item></channel></rss>
